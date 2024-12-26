@@ -99,27 +99,8 @@ MetaGuard performs the following checks for each transaction:
    - Historical transaction analysis
    - Gas optimization
 
-## 🤝 Contributing
-
-1. Fork this repository
-2. Create a new branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
 
 ## 📝 License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- MetaMask Snaps team
-- Etherscan API team
-- GoPlus Security team
-- TensorFlow.js team
-
-## 📞 Contact
-
-- GitHub: [github.com/yourusername/metaguard-snap](https://github.com/yourusername/metaguard-snap)
-- Twitter: [@MetaGuardSnap](https://twitter.com/MetaGuardSnap)
-- Email: contact@metaguard.eth
