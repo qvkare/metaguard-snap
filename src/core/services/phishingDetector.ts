@@ -4,6 +4,7 @@ import { PhishingResult } from '../../types';
 export class PhishingDetector {
   private goPlusApiUrl: string;
   private httpClient: HttpClient;
+  private readonly metamaskApiUrl = 'https://phishing-detection.metaswap.codefi.network/v1/blacklist';
 
   constructor(goPlusApiUrl: string, httpClient: HttpClient) {
     this.goPlusApiUrl = goPlusApiUrl;
@@ -15,7 +16,6 @@ export class PhishingDetector {
       const response = await this.httpClient.get<{
         result: { is_phishing_site: string; is_blacklisted: string };
       }>(`${this.goPlusApiUrl}${address}`);
-
       return (
         response.data.result.is_phishing_site === '1' ||
         response.data.result.is_blacklisted === '1'
