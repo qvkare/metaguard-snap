@@ -6,4 +6,4 @@ function render(ui: ReactElement, { ...renderOptions } = {}) {
 }
 
 export * from '@testing-library/react';
-export { render }; 
+export { render };

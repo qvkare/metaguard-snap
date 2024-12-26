@@ -13,7 +13,9 @@ describe('App Component Tests', () => {
   });
 
   test('renders description text correctly', () => {
-    const description = screen.getByText(/A MetaMask snap for enhanced transaction security analysis/i);
+    const description = screen.getByText(
+      /A MetaMask snap for enhanced transaction security analysis/i,
+    );
     expect(description).toBeInTheDocument();
   });
-}); 
+});

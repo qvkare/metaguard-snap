@@ -1,1 +1,1 @@
-export { onTransaction } from './snap/handlers/transaction'; 
+export { onTransaction } from './snap/handlers/transaction';

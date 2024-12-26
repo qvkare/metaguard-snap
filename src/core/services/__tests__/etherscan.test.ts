@@ -23,10 +23,12 @@ describe('EtherscanService', () => {
       mockHttpClient.get.mockResolvedValue({
         status: '1',
         message: 'OK',
-        result: [{
-          ABI: '[]',
-          ContractName: 'TestContract'
-        }]
+        result: [
+          {
+            ABI: '[]',
+            ContractName: 'TestContract',
+          },
+        ],
       });
 
       const result = await etherscanService.getContractInfo(address);
@@ -36,8 +38,8 @@ describe('EtherscanService', () => {
       expect(mockHttpClient.get).toHaveBeenCalledWith('', {
         params: expect.objectContaining({
           address,
-          apikey: 'test-api-key'
-        })
+          apikey: 'test-api-key',
+        }),
       });
     });
 
@@ -46,9 +48,11 @@ describe('EtherscanService', () => {
       mockHttpClient.get.mockResolvedValue({
         status: '1',
         message: 'OK',
-        result: [{
-          ABI: 'Contract source code not verified'
-        }]
+        result: [
+          {
+            ABI: 'Contract source code not verified',
+          },
+        ],
       });
 
       const result = await etherscanService.getContractInfo(address);
@@ -66,7 +70,9 @@ describe('EtherscanService', () => {
       const address = '0x789';
       mockHttpClient.get.mockRejectedValue(new Error('API error'));
 
-      await expect(etherscanService.getContractInfo(address)).rejects.toThrow('Failed to fetch contract information');
+      await expect(etherscanService.getContractInfo(address)).rejects.toThrow(
+        'Failed to fetch contract information',
+      );
     });
   });
-}); 
+});

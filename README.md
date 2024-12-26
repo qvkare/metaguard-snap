@@ -1,113 +1,79 @@
-# MetaGuard - ML-based Transaction Security Analysis for MetaMask
+# MetaGuard Snap
 
-MetaGuard is a Snap application that analyzes your MetaMask transactions using artificial intelligence and machine learning to detect potential security risks.
+MetaGuard Snap is a MetaMask Snap application that provides enhanced transaction security analysis for MetaMask users.
 
-## 🚀 Features
+## Features
 
-### 🤖 ML-based Risk Analysis
-- Transaction value analysis
-- Gas price optimization
-- Smart contract risk assessment
-- Historical transaction analysis
+- 🔍 Smart contract verification check
+- 🛡️ Protection against potential phishing attacks
+- ⚠️ High-risk transaction detection
+- 💡 Security recommendations
+- 📊 Risk level and security score calculation
 
-### 🛡️ Security Controls
-- Contract verification check
-- Phishing detection (MetaMask, GoPlus, and Etherscan databases)
-- License and optimization check
-- Method signature validation
+## Technologies
 
-### 🔒 Advanced Security
-- Encrypted ML model
-- Secure data storage
-- Caching and rate limiting
-- Real-time updates
+- React
+- TypeScript
+- MetaMask Snaps SDK
+- Etherscan API
+- GoPlus Security API
+- Jest & React Testing Library
 
-## 🛠️ Installation
+## Installation
 
-1. Install dependencies:
+1. Clone the repository:
 ```bash
-yarn install
+git clone https://github.com/qvkare/metaguard-snap.git
+cd metaguard-snap
 ```
 
-2. Configure .env file:
-```env
-# Ethereum RPC URL (example: Infura, Alchemy)
-ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY
-
-# Etherscan API Key
-ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY
-
-# Network Settings
-NETWORK=mainnet # mainnet or testnet
-
-# Model Settings
-MODEL_SAVE_PATH=./models/transaction_model
-TRAINING_BLOCK_COUNT=100
-
-# Security Settings
-MODEL_ENCRYPTION_KEY=your-very-long-and-secure-encryption-key-here
-MODEL_DATA_DIR=./data/encrypted
-```
-
-3. Train the ML model:
+2. Install dependencies:
 ```bash
-yarn workspace metaguard-snap train
+npm install
 ```
 
-4. Build the Snap:
+3. Start development server:
 ```bash
-yarn workspace metaguard-snap build
+npm start
 ```
 
-5. Start development server:
+4. Run tests:
 ```bash
-yarn workspace metaguard-snap serve
+npm test
 ```
 
-## 📚 Usage
+5. Create production build:
+```bash
+npm run build
+```
 
-1. Open MetaMask and enable developer mode
-2. Go to "http://localhost:8080"
-3. Install MetaGuard snap
-4. MetaGuard will automatically perform security analysis whenever you attempt any transaction
+## Usage
 
-## 🔍 Security Analysis
+1. Install the latest version of MetaMask
+2. Install MetaGuard Snap
+3. When attempting a transaction, MetaGuard will automatically perform security analysis
 
-MetaGuard performs the following checks for each transaction:
+## Security Checks
 
-1. ML-based Risk Analysis
-   - Transaction value check
-   - Gas price optimization
-   - Contract risk score
-   - Anomaly detection
+- Contract Verification: Checks if the smart contract's source code is verified on Etherscan
+- Phishing Detection: Checks the address against known phishing attacks
+- Risk Assessment: Calculates the risk level and score of the transaction
+- Recommendations: Provides suggestions based on detected risks
 
-2. Contract Security Checks
-   - Source code verification
-   - License check
-   - Optimizer usage
-   - ABI verification
-
-3. Phishing Protection
-   - MetaMask blacklist
-   - GoPlus security database
-   - Etherscan blacklist
-   - Honeypot detection
-
-4. Transaction Analysis
-   - Method signature check
-   - Parameter validation
-   - Historical transaction analysis
-   - Gas optimization
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork this repository
 2. Create a new branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Create a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
+
+## Contact
+
+- GitHub: [@qvkare](https://github.com/qvkare)
+- Twitter: [@qvkare](https://twitter.com/qvkare)
 

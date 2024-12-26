@@ -2,7 +2,8 @@ export class CacheManager {
   private cache: Map<string, any>;
   private readonly ttl: number;
 
-  constructor(ttl: number = 3600000) { // Default 1 saat
+  constructor(ttl: number = 3600000) {
+    // Default 1 saat
     this.cache = new Map();
     this.ttl = ttl;
   }
@@ -10,7 +11,7 @@ export class CacheManager {
   set(key: string, value: any): void {
     this.cache.set(key, {
       value,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -41,4 +42,4 @@ export class CacheManager {
   clear(): void {
     this.cache.clear();
   }
-} 
+}

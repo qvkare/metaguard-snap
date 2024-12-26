@@ -1,30 +1,29 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 export class HttpClient {
-  private readonly client: AxiosInstance;
+  private baseUrl: string;
+  private apiKey?: string;
 
-  constructor(baseURL?: string, config?: AxiosRequestConfig) {
-    this.client = axios.create({
-      baseURL,
-      timeout: parseInt(process.env.API_TIMEOUT || '5000'),
-      ...config
-    });
+  constructor(baseUrl: string, apiKey?: string) {
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
+  }
 
-    // Add request interceptor for rate limiting
-    this.client.interceptors.request.use(async (config) => {
-      const delay = parseInt(process.env.RATE_LIMIT_DELAY || '1000');
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return config;
+  async get<T>(endpoint: string): Promise<T> {
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        const response = await axios.get<T>(`${this.baseUrl}${endpoint}`, {
+          headers: this.apiKey ? { 'X-API-Key': this.apiKey } : undefined,
+        });
+        resolve(response.data);
+      }, 1000);
     });
   }
 
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<T>(url, config);
+  async post<T, D>(endpoint: string, data: D): Promise<T> {
+    const response: AxiosResponse<T> = await axios.post<T>(`${this.baseUrl}${endpoint}`, data, {
+      headers: this.apiKey ? { 'X-API-Key': this.apiKey } : undefined,
+    });
     return response.data;
   }
-
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<T>(url, data, config);
-    return response.data;
-  }
-} 
+}

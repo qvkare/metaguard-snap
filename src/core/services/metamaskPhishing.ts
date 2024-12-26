@@ -7,7 +7,8 @@ export interface MetaMaskPhishingResult {
 }
 
 export class MetaMaskPhishingService {
-  private readonly phishingListUrl = 'https://raw.githubusercontent.com/MetaMask/eth-phishing-detect/master/src/config.json';
+  private readonly phishingListUrl =
+    'https://raw.githubusercontent.com/MetaMask/eth-phishing-detect/master/src/config.json';
   private phishingList: any = null;
   private lastUpdate: number = 0;
   private readonly updateInterval = 3600000; // 1 saat
@@ -15,15 +16,15 @@ export class MetaMaskPhishingService {
   async checkAddress(address: string): Promise<MetaMaskPhishingResult> {
     try {
       await this.updatePhishingList();
-      
+
       const normalizedAddress = address.toLowerCase();
-      
+
       // Doğrudan adres kontrolü
       if (this.phishingList.blacklist.includes(normalizedAddress)) {
         return {
           isPhishing: true,
           confidence: 1.0,
-          reason: 'Address is in MetaMask blacklist'
+          reason: 'Address is in MetaMask blacklist',
         };
       }
 
@@ -32,7 +33,7 @@ export class MetaMaskPhishingService {
         return {
           isPhishing: false,
           confidence: 1.0,
-          reason: 'Address is in MetaMask whitelist'
+          reason: 'Address is in MetaMask whitelist',
         };
       }
 
@@ -48,21 +49,21 @@ export class MetaMaskPhishingService {
         return {
           isPhishing: true,
           confidence: 0.8,
-          reason: 'Address matches fuzzy phishing pattern'
+          reason: 'Address matches fuzzy phishing pattern',
         };
       }
 
       return {
         isPhishing: false,
         confidence: 0.9,
-        reason: undefined
+        reason: undefined,
       };
     } catch (error) {
       console.error('Error checking MetaMask phishing list:', error);
       return {
         isPhishing: false,
         confidence: 0,
-        reason: 'Error checking phishing status'
+        reason: 'Error checking phishing status',
       };
     }
   }
@@ -84,4 +85,4 @@ export class MetaMaskPhishingService {
       }
     }
   }
-} 
+}

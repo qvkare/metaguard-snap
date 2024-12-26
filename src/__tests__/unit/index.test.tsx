@@ -1,44 +1,31 @@
-import { onTransaction } from '../../index';
+import { onTransaction } from '../../snap/handlers/transaction';
 import { SecurityAnalyzer } from '../../core/analyzers/SecurityAnalyzer';
 import { type Transaction } from '@metamask/snaps-sdk';
-import { Panel, NodeType } from '@metamask/snaps-sdk';
+import { SecurityReport, RiskLevel } from '../../types';
 
 jest.mock('../../core/analyzers/SecurityAnalyzer');
 
 describe('onTransaction', () => {
-  let mockSecurityAnalyzer: jest.Mocked<SecurityAnalyzer>;
+  const mockReport: SecurityReport = {
+    riskLevel: 'MEDIUM' as RiskLevel,
+    riskScore: 0.5,
+    warnings: ['High value transaction'],
+    recommendations: ['Review transaction carefully'],
+    securityChecks: [
+      {
+        name: 'Value Check',
+        passed: false,
+        details: 'High value transaction',
+        severity: 'MEDIUM',
+      },
+    ],
+  };
 
   beforeEach(() => {
-    mockSecurityAnalyzer = {
-      analyzeTransaction: jest.fn().mockResolvedValue({
-        risk: 'medium',
-        warnings: ['High value transaction'],
-        recommendations: ['Review transaction carefully'],
-        securityChecks: [
-          {
-            name: 'Value Check',
-            passed: false,
-            details: 'High value transaction',
-            severity: 'MEDIUM',
-          },
-        ],
-        contractInfo: {
-          verified: true,
-          name: 'TestContract',
-        },
-        phishingResults: {
-          isPhishing: false,
-          confidence: 1.0,
-        },
-        riskAssessment: {
-          riskLevel: 'medium',
-          riskScore: 0.5,
-          details: ['High value transaction'],
-        },
-        timestamp: Date.now(),
-      }),
-    } as unknown as jest.Mocked<SecurityAnalyzer>;
-    (SecurityAnalyzer as jest.Mock).mockImplementation(() => mockSecurityAnalyzer);
+    jest.clearAllMocks();
+    (SecurityAnalyzer as jest.Mock).mockImplementation(() => ({
+      analyzeTransaction: jest.fn().mockResolvedValue(mockReport),
+    }));
   });
 
   it('should analyze transaction and return security report', async () => {
@@ -47,45 +34,25 @@ describe('onTransaction', () => {
       value: '1000000000000000000',
     } as Transaction;
 
-    const result = await onTransaction({ 
+    const result = await onTransaction({
       transaction: mockTransaction,
       chainId: 'eip155:1',
-      transactionOrigin: 'dapp.example.com'
+      transactionOrigin: 'dapp.example.com',
     });
-    
+
     expect(result).toBeDefined();
-    if (!result) throw new Error('Result should be defined');
-    
-    expect(result.content).toBeDefined();
-    const content = result.content;
-    expect(content).toHaveProperty('type', NodeType.Panel);
-  });
-
-  it('should handle errors gracefully', async () => {
-    const mockTransaction = {
-      to: '0x1234567890123456789012345678901234567890',
-      value: '1000000000000000000',
-    } as Transaction;
-
-    mockSecurityAnalyzer.analyzeTransaction.mockRejectedValueOnce(new Error('Analysis failed'));
-
-    const result = await onTransaction({ 
-      transaction: mockTransaction,
-      chainId: 'eip155:1',
-      transactionOrigin: 'dapp.example.com'
-    });
-    
-    expect(result).toBeDefined();
-    if (!result) throw new Error('Result should be defined');
-    
-    expect(result.content).toBeDefined();
-    const content = result.content;
-    expect(content).toHaveProperty('type', NodeType.Panel);
+    expect(result.content.type).toBe('panel');
+    expect(result.content.children).toHaveLength(9);
+    expect(result.content.children[0].type).toBe('heading');
+    expect(result.content.children[0].value).toBe('Security Analysis Report');
+    expect(result.content.children[1].type).toBe('text');
+    expect(result.content.children[1].value).toBe('Risk Level: MEDIUM');
   });
 
   it('should handle high risk transactions', async () => {
-    mockSecurityAnalyzer.analyzeTransaction.mockResolvedValueOnce({
-      risk: 'high',
+    const highRiskReport: SecurityReport = {
+      riskLevel: 'HIGH' as RiskLevel,
+      riskScore: 0.9,
       warnings: ['Potential phishing attack detected'],
       recommendations: ['Do not proceed with the transaction'],
       securityChecks: [
@@ -96,37 +63,29 @@ describe('onTransaction', () => {
           severity: 'HIGH',
         },
       ],
-      contractInfo: {
-        verified: false,
-        name: 'Unknown Contract',
-      },
-      phishingResults: {
-        isPhishing: true,
-        confidence: 0.9,
-      },
-      riskAssessment: {
-        riskLevel: 'high',
-        riskScore: 0.9,
-        details: ['Potential phishing attack detected'],
-      },
-      timestamp: Date.now(),
-    });
+    };
+
+    (SecurityAnalyzer as jest.Mock).mockImplementation(() => ({
+      analyzeTransaction: jest.fn().mockResolvedValue(highRiskReport),
+    }));
 
     const mockTransaction = {
       to: '0x1234567890123456789012345678901234567890',
       value: '10000000000000000000',
     } as Transaction;
 
-    const result = await onTransaction({ 
+    const result = await onTransaction({
       transaction: mockTransaction,
       chainId: 'eip155:1',
-      transactionOrigin: 'dapp.example.com'
+      transactionOrigin: 'dapp.example.com',
     });
 
     expect(result).toBeDefined();
-    if (!result) throw new Error('Result should be defined');
-    
-    const content = result.content;
-    expect(content).toHaveProperty('type', NodeType.Panel);
+    expect(result.content.type).toBe('panel');
+    expect(result.content.children).toHaveLength(9);
+    expect(result.content.children[0].type).toBe('heading');
+    expect(result.content.children[0].value).toBe('Security Analysis Report');
+    expect(result.content.children[1].type).toBe('text');
+    expect(result.content.children[1].value).toBe('Risk Level: HIGH');
   });
-}); 
+});

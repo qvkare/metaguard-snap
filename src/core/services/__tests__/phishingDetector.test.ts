@@ -15,7 +15,7 @@ describe('PhishingDetector', () => {
     mockCache = {
       get: jest.fn(),
       set: jest.fn(),
-      has: jest.fn()
+      has: jest.fn(),
     } as unknown as jest.Mocked<CacheManager>;
 
     phishingDetector = new PhishingDetector(mockCache);
@@ -23,12 +23,12 @@ describe('PhishingDetector', () => {
 
   it('should detect phishing address', async () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
-    
+
     mockedAxios.get.mockResolvedValueOnce({
       data: {
         result: { is_phishing: true },
-        status: 1
-      }
+        status: 1,
+      },
     });
 
     mockCache.has.mockReturnValue(false);
@@ -46,7 +46,7 @@ describe('PhishingDetector', () => {
     const cachedResult = {
       isPhishing: false,
       confidence: 1.0,
-      reason: 'Cached result'
+      reason: 'Cached result',
     };
 
     mockCache.has.mockReturnValue(true);
@@ -60,7 +60,7 @@ describe('PhishingDetector', () => {
 
   it('should handle API errors gracefully', async () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
-    
+
     mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
     mockCache.has.mockReturnValue(false);
 

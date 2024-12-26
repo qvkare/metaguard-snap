@@ -1,12 +1,9 @@
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  rest.get('/api/data', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        message: 'Test verisi',
-      })
-    );
+  http.get('/api/data', () => {
+    return HttpResponse.json({
+      message: 'Test verisi',
+    });
   }),
-]; 
+];

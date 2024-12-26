@@ -1,5 +1,5 @@
 import { HttpClient } from '../../utils/httpClient';
-import { PhishingResult } from '../types/common';
+import { PhishingResult } from '../../types';
 
 export class PhishingDetector {
   private readonly httpClient: HttpClient;
@@ -7,84 +7,90 @@ export class PhishingDetector {
   private readonly goPlusApiUrl = 'https://api.gopluslabs.io/api/v1/address_security/';
 
   constructor(httpClient?: HttpClient) {
-    this.httpClient = httpClient || new HttpClient();
+    this.httpClient = httpClient || new HttpClient('');
+  }
+
+  async isPhishingSite(address: string): Promise<boolean> {
+    const result = await this.checkAddress(address);
+    return result.isPhishing;
   }
 
   async checkAddress(address: string): Promise<PhishingResult> {
     try {
       const [metamaskResult, goPlusResult] = await Promise.all([
         this.checkMetaMaskList(address),
-        this.checkGoPlusSecurity(address)
+        this.checkGoPlusSecurity(address),
       ]);
 
-      // Combine results with higher confidence taking precedence
       if (metamaskResult.isPhishing || goPlusResult.isPhishing) {
         return {
           isPhishing: true,
           confidence: Math.max(metamaskResult.confidence, goPlusResult.confidence),
-          reason: metamaskResult.isPhishing ? metamaskResult.reason : goPlusResult.reason
+          reason: metamaskResult.isPhishing ? metamaskResult.reason : goPlusResult.reason,
         };
       }
 
       return {
         isPhishing: false,
         confidence: Math.max(metamaskResult.confidence, goPlusResult.confidence),
-        reason: 'No phishing detected'
+        reason: 'No phishing detected',
       };
     } catch (error) {
       console.error('Error checking address for phishing:', error);
       return {
         isPhishing: false,
         confidence: 0,
-        reason: 'Error checking phishing status'
+        reason: 'Error checking phishing status',
       };
     }
   }
 
   private async checkMetaMaskList(address: string): Promise<PhishingResult> {
     try {
-      const response = await this.httpClient.get(this.metamaskApiUrl);
-      const blacklist = response.data.blacklist || [];
-      
+      const response = await this.httpClient.get<{ blacklist: string[] }>(this.metamaskApiUrl);
+      const blacklist = response.blacklist || [];
+
       const isBlacklisted = blacklist.some(
-        (item: string) => item.toLowerCase() === address.toLowerCase()
+        (item: string) => item.toLowerCase() === address.toLowerCase(),
       );
 
       return {
         isPhishing: isBlacklisted,
         confidence: isBlacklisted ? 1.0 : 0.5,
-        reason: isBlacklisted ? 'Address found in MetaMask blacklist' : undefined
+        reason: isBlacklisted ? 'Address found in MetaMask blacklist' : undefined,
       };
     } catch (error) {
       console.error('Error checking MetaMask blacklist:', error);
       return {
         isPhishing: false,
         confidence: 0,
-        reason: 'Error checking MetaMask blacklist'
+        reason: 'Error checking MetaMask blacklist',
       };
     }
   }
 
   private async checkGoPlusSecurity(address: string): Promise<PhishingResult> {
     try {
-      const response = await this.httpClient.get(`${this.goPlusApiUrl}${address}`);
-      const securityInfo = response.data.result || {};
+      const response = await this.httpClient.get<{ result: { is_phishing_site: string; is_blacklisted: string } }>(
+        `${this.goPlusApiUrl}${address}`,
+      );
+      const securityInfo = response.result || {};
 
-      const isPhishing = securityInfo.is_phishing_site === '1' || 
-                        securityInfo.is_blacklisted === '1';
+      const isPhishing =
+        securityInfo.is_phishing_site === '1' || securityInfo.is_blacklisted === '1';
 
       return {
         isPhishing,
         confidence: isPhishing ? 0.9 : 0.7,
-        reason: isPhishing ? 'Address flagged by GoPlus Security' : undefined
+        reason: isPhishing ? 'Address flagged by GoPlus Security' : undefined,
       };
     } catch (error) {
       console.error('Error checking GoPlus Security:', error);
       return {
         isPhishing: false,
         confidence: 0,
-        reason: 'Error checking GoPlus Security'
+        reason: 'Error checking GoPlus Security',
       };
     }
   }
-} 
+}

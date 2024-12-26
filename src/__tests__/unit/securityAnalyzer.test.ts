@@ -1,7 +1,7 @@
 import { SecurityAnalyzer } from '../../core/analyzers/SecurityAnalyzer';
 import { PhishingDetector } from '../../core/services/phishingDetector';
 import { EtherscanService } from '../../core/services/etherscan';
-import { Transaction } from '../../types/common';
+import { Transaction, SecurityReport } from '../../types';
 
 jest.mock('../../core/services/phishingDetector');
 jest.mock('../../core/services/etherscan');
@@ -13,18 +13,11 @@ describe('SecurityAnalyzer', () => {
 
   beforeEach(() => {
     mockPhishingDetector = {
-      checkAddress: jest.fn().mockResolvedValue({
-        isPhishing: false,
-        confidence: 1.0,
-        reason: null
-      })
+      isPhishingSite: jest.fn().mockResolvedValue(false),
     } as unknown as jest.Mocked<PhishingDetector>;
 
     mockEtherscanService = {
-      getContractInfo: jest.fn().mockResolvedValue({
-        verified: true,
-        name: 'Test Contract'
-      })
+      isContractVerified: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<EtherscanService>;
 
     securityAnalyzer = new SecurityAnalyzer(mockPhishingDetector, mockEtherscanService);
@@ -33,69 +26,55 @@ describe('SecurityAnalyzer', () => {
   it('should analyze transaction successfully', async () => {
     const transaction: Transaction = {
       to: '0x1234567890123456789012345678901234567890',
-      value: '1000000000000000000'
+      value: '1000000000000000000',
     };
 
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
     expect(result).toBeDefined();
-    expect(result.risk).toBe('low');
+    expect(result.riskLevel).toBe('LOW');
     expect(result.warnings).toBeInstanceOf(Array);
     expect(result.recommendations).toBeInstanceOf(Array);
     expect(result.securityChecks).toBeInstanceOf(Array);
-    expect(mockPhishingDetector.checkAddress).toHaveBeenCalledWith(transaction.to);
-    expect(mockEtherscanService.getContractInfo).toHaveBeenCalledWith(transaction.to);
+    expect(mockPhishingDetector.isPhishingSite).toHaveBeenCalledWith(transaction.to);
+    expect(mockEtherscanService.isContractVerified).toHaveBeenCalledWith(transaction.to);
+  });
+
+  it('should handle contract creation transactions', async () => {
+    const transaction: Transaction = {
+      value: '1000000000000000000',
+    };
+
+    const result = await securityAnalyzer.analyzeTransaction(transaction);
+
+    expect(result.warnings).toContain('Contract creation transaction detected');
+    expect(result.recommendations).toContain('Review the contract code carefully before deployment');
   });
 
   it('should detect high risk transactions', async () => {
     const transaction: Transaction = {
       to: '0x1234567890123456789012345678901234567890',
-      value: '10000000000000000000' // Yüksek değerli işlem
+      value: '10000000000000000000',
     };
 
-    mockPhishingDetector.checkAddress.mockResolvedValueOnce({
-      isPhishing: true,
-      confidence: 0.9,
-      reason: 'Suspicious activity detected'
-    });
-
-    mockEtherscanService.getContractInfo.mockResolvedValueOnce({
-      verified: false,
-      name: 'Unknown Contract'
-    });
+    mockPhishingDetector.isPhishingSite.mockResolvedValueOnce(true);
+    mockEtherscanService.isContractVerified.mockResolvedValueOnce(false);
 
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
-    expect(result.risk).toBe('high');
-    expect(result.warnings).toContain('Suspicious activity detected');
-    expect(result.securityChecks.some(check => check.severity === 'HIGH')).toBe(true);
+    expect(result.riskLevel).toBe('HIGH');
+    expect(result.securityChecks.some((check) => !check.passed && check.severity === 'HIGH')).toBe(true);
   });
 
-  it('should handle missing destination address', async () => {
-    const transaction: Transaction = {
-      value: '1000000000000000000'
-    };
-
-    await expect(securityAnalyzer.analyzeTransaction(transaction))
-      .rejects
-      .toThrow('Transaction destination address is required');
-  });
-
-  it('should generate appropriate recommendations based on risk level', async () => {
+  it('should handle value transfers', async () => {
     const transaction: Transaction = {
       to: '0x1234567890123456789012345678901234567890',
-      value: '10000000000000000000'
+      value: 'ff',
     };
-
-    mockPhishingDetector.checkAddress.mockResolvedValueOnce({
-      isPhishing: true,
-      confidence: 0.9,
-      reason: 'Known phishing address'
-    });
 
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
-    expect(result.recommendations).toContain('Review transaction carefully before proceeding');
-    expect(result.recommendations).toContain('Consider using a different contract or service');
+    expect(result.warnings).toContain('Transaction involves value transfer');
+    expect(result.recommendations).toContain('Verify the recipient address and amount before confirming');
   });
 });

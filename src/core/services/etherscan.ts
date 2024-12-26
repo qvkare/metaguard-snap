@@ -1,36 +1,54 @@
 import { HttpClient } from '../../utils/httpClient';
 
-interface ContractInfo {
-  verified: boolean;
-  name: string;
+interface EtherscanResponse<T> {
+  status: string;
+  result: T;
+}
+
+interface SourceCodeResult {
+  SourceCode: string;
+  ABI: string;
+  ContractName: string;
+  CompilerVersion: string;
+  OptimizationUsed: string;
+  Runs: string;
+  ConstructorArguments: string;
+  EVMVersion: string;
+  Library: string;
+  LicenseType: string;
+  Proxy: string;
+  Implementation: string;
+  SwarmSource: string;
 }
 
 export class EtherscanService {
-  private readonly httpClient: HttpClient;
-  private readonly apiKey: string;
+  private httpClient: HttpClient;
+  private apiKey: string;
   private readonly baseUrl = 'https://api.etherscan.io/api';
 
   constructor(httpClient?: HttpClient, apiKey?: string) {
-    this.httpClient = httpClient || new HttpClient();
+    this.httpClient = httpClient || new HttpClient(this.baseUrl);
     this.apiKey = apiKey || process.env.ETHERSCAN_API_KEY || '';
   }
 
-  async getContractInfo(address: string): Promise<ContractInfo> {
-    try {
-      const response = await this.httpClient.get(
-        `${this.baseUrl}?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`
-      );
+  async getContractSourceCode(address: string): Promise<string> {
+    const endpoint = `?module=contract&action=getsourcecode&address=${address}&apikey=${this.apiKey}`;
+    const response = await this.httpClient.get<EtherscanResponse<SourceCodeResult[]>>(endpoint);
 
-      return {
-        verified: response.data.status === '1',
-        name: response.data.result?.ContractName || 'Unknown Contract'
-      };
-    } catch (error) {
-      console.error('Error fetching contract info:', error);
-      return {
-        verified: false,
-        name: 'Unknown Contract'
-      };
+    if (response.status === '1' && response.result[0]) {
+      return response.result[0].SourceCode;
     }
+    return '';
   }
-} 
+
+  async isContractVerified(address: string): Promise<boolean> {
+    const sourceCode = await this.getContractSourceCode(address);
+    return sourceCode !== '';
+  }
+
+  async getContractABI(address: string): Promise<string> {
+    const endpoint = `?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`;
+    const response = await this.httpClient.get<EtherscanResponse<string>>(endpoint);
+    return response.status === '1' ? response.result : '';
+  }
+}

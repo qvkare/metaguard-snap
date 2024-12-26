@@ -35,9 +35,9 @@ class MockWebSocket {
   onmessage: (event: any) => void = () => {};
   onerror: (error: any) => void = () => {};
   readyState: number = WebSocket.CONNECTING;
-  
+
   constructor(url: string, protocols?: string | string[]) {}
-  
+
   send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {}
   close(code?: number, reason?: string): void {}
 }
@@ -62,7 +62,13 @@ const mockCrypto = {
     decrypt: async (algorithm: any, key: CryptoKey, data: Uint8Array) => {
       return new Uint8Array(Math.max(0, data.length - 16));
     },
-    importKey: async (format: string, keyData: Uint8Array, algorithm: any, extractable: boolean, keyUsages: string[]) => {
+    importKey: async (
+      format: string,
+      keyData: Uint8Array,
+      algorithm: any,
+      extractable: boolean,
+      keyUsages: string[],
+    ) => {
       return {} as CryptoKey;
     },
     generateKey: async (algorithm: any, extractable: boolean, keyUsages: string[]) => {
@@ -96,7 +102,7 @@ global.fetch = jest.fn(() =>
     headers: new Headers(),
     status: 200,
     statusText: 'OK',
-  })
+  }),
 ) as unknown as typeof fetch;
 
 // Mock axios
@@ -127,4 +133,4 @@ const mockAxios = {
 
 jest.mock('axios', () => mockAxios);
 
-export const mockedAxios = mockAxios; 
+export const mockedAxios = mockAxios;

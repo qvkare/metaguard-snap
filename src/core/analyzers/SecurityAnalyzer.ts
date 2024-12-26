@@ -1,114 +1,81 @@
 import { PhishingDetector } from '../services/phishingDetector';
 import { EtherscanService } from '../services/etherscan';
-import { SecurityReport, RiskLevel, SecurityCheck, Transaction } from '../../types/common';
+import { SecurityCheck, SecurityReport, RiskLevel } from '../../types';
+
+interface Transaction {
+  to?: string;
+  value?: string;
+  data?: string;
+}
 
 export class SecurityAnalyzer {
-  private readonly phishingDetector: PhishingDetector;
-  private readonly etherscanService: EtherscanService;
+  private phishingDetector: PhishingDetector;
+  private etherscanService: EtherscanService;
 
-  constructor(
-    phishingDetector?: PhishingDetector,
-    etherscanService?: EtherscanService
-  ) {
+  constructor(phishingDetector?: PhishingDetector, etherscanService?: EtherscanService) {
     this.phishingDetector = phishingDetector || new PhishingDetector();
     this.etherscanService = etherscanService || new EtherscanService();
   }
 
   async analyzeTransaction(transaction: Transaction): Promise<SecurityReport> {
+    const securityChecks: SecurityCheck[] = [
+      {
+        name: 'Contract Verification',
+        passed: transaction.to
+          ? await this.etherscanService.isContractVerified(transaction.to)
+          : false,
+        severity: 'HIGH',
+        details: 'Contract source code verification status',
+      },
+      {
+        name: 'Phishing Detection',
+        passed: transaction.to
+          ? !(await this.phishingDetector.isPhishingSite(transaction.to))
+          : true,
+        severity: 'HIGH',
+        details: 'Check if the contract is associated with known phishing attempts',
+      },
+    ];
+
+    const warnings: string[] = [];
+    const recommendations: string[] = [];
+
     if (!transaction.to) {
-      throw new Error('Transaction destination address is required');
+      warnings.push('Contract creation transaction detected');
+      recommendations.push('Review the contract code carefully before deployment');
     }
 
-    const securityChecks = await this.performSecurityChecks(transaction);
-    const riskAssessment = this.assessRisk(securityChecks);
-    const recommendations = this.generateRecommendations(riskAssessment);
+    if (transaction.value && parseInt(transaction.value, 16) > 0) {
+      warnings.push('Transaction involves value transfer');
+      recommendations.push('Verify the recipient address and amount before confirming');
+    }
+
+    const { riskLevel, riskScore } = this.calculateRisk(securityChecks);
 
     return {
-      risk: riskAssessment.riskLevel,
-      warnings: riskAssessment.details,
+      riskLevel,
+      riskScore,
+      warnings,
       recommendations,
       securityChecks,
-      contractInfo: await this.etherscanService.getContractInfo(transaction.to),
-      phishingResults: await this.phishingDetector.checkAddress(transaction.to),
-      riskAssessment,
-      timestamp: Date.now()
     };
   }
 
-  async performSecurityChecks(transaction: Transaction): Promise<SecurityCheck[]> {
-    const checks: SecurityCheck[] = [];
-    
-    // Value check
-    if (transaction.value && BigInt(transaction.value) > BigInt('1000000000000000000')) {
-      checks.push({
-        name: 'Value Check',
-        passed: false,
-        details: 'High value transaction',
-        severity: 'MEDIUM'
-      });
+  private calculateRisk(checks: SecurityCheck[]): { riskLevel: RiskLevel; riskScore: number } {
+    const highRiskFailures = checks.filter((check) => !check.passed && check.severity === 'HIGH');
+    const mediumRiskFailures = checks.filter((check) => !check.passed && check.severity === 'MEDIUM');
+
+    const riskScore = (highRiskFailures.length * 3 + mediumRiskFailures.length) / checks.length;
+
+    let riskLevel: RiskLevel;
+    if (highRiskFailures.length > 0) {
+      riskLevel = 'HIGH';
+    } else if (mediumRiskFailures.length > 0) {
+      riskLevel = 'MEDIUM';
+    } else {
+      riskLevel = 'LOW';
     }
 
-    // Contract verification check
-    if (transaction.to) {
-      const contractInfo = await this.etherscanService.getContractInfo(transaction.to);
-      checks.push({
-        name: 'Contract Verification',
-        passed: contractInfo.verified,
-        details: contractInfo.verified ? 'Contract is verified' : 'Contract is not verified',
-        severity: contractInfo.verified ? 'LOW' : 'HIGH'
-      });
-    }
-
-    // Phishing check
-    if (transaction.to) {
-      const phishingResult = await this.phishingDetector.checkAddress(transaction.to);
-      checks.push({
-        name: 'Phishing Detection',
-        passed: !phishingResult.isPhishing,
-        details: phishingResult.reason || 'No phishing detected',
-        severity: phishingResult.isPhishing ? 'HIGH' : 'LOW'
-      });
-    }
-
-    return checks;
+    return { riskLevel, riskScore };
   }
-
-  private assessRisk(checks: SecurityCheck[]): { riskLevel: RiskLevel; riskScore: number; details: string[] } {
-    const highSeverityFailures = checks.filter(check => !check.passed && check.severity === 'HIGH');
-    const mediumSeverityFailures = checks.filter(check => !check.passed && check.severity === 'MEDIUM');
-    
-    const details = checks
-      .filter(check => !check.passed)
-      .map(check => check.details);
-
-    if (highSeverityFailures.length > 0) {
-      return { riskLevel: 'high', riskScore: 0.8, details };
-    }
-    
-    if (mediumSeverityFailures.length > 0) {
-      return { riskLevel: 'medium', riskScore: 0.5, details };
-    }
-
-    return { riskLevel: 'low', riskScore: 0.2, details };
-  }
-
-  generateRecommendations(assessment: { riskLevel: RiskLevel; details: string[] }): string[] {
-    const recommendations: string[] = [];
-
-    if (assessment.riskLevel === 'high') {
-      recommendations.push('Review transaction carefully before proceeding');
-      recommendations.push('Consider using a different contract or service');
-    }
-
-    if (assessment.riskLevel === 'medium') {
-      recommendations.push('Review transaction details');
-      recommendations.push('Verify contract source code if available');
-    }
-
-    if (assessment.details.length > 0) {
-      recommendations.push('Address specific issues before proceeding');
-    }
-
-    return recommendations;
-  }
-} 
+}

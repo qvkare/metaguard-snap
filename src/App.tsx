@@ -5,12 +5,10 @@ const App: React.FC = () => {
     <div className="App">
       <header className="App-header">
         <h1>MetaGuard Snap</h1>
-        <p>
-          A MetaMask snap for enhanced transaction security analysis.
-        </p>
+        <p>A MetaMask snap for enhanced transaction security analysis.</p>
       </header>
     </div>
   );
 };
 
-export default App; 
+export default App;
