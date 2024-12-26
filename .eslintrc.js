@@ -1,42 +1,27 @@
 module.exports = {
   root: true,
-
-  parserOptions: {
-    sourceType: 'module',
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'react', 'prettier'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:prettier/recommended',
+  ],
+  env: {
+    browser: true,
+    es2021: true,
+    node: true,
+    jest: true,
   },
-
-  extends: ['@metamask/eslint-config'],
-
-  overrides: [
-    {
-      files: ['*.js'],
-      extends: ['@metamask/eslint-config-nodejs'],
+  settings: {
+    react: {
+      version: 'detect',
     },
-
-    {
-      files: ['*.ts', '*.tsx'],
-      extends: ['@metamask/eslint-config-typescript'],
-    },
-
-    {
-      files: ['*.test.ts', '*.test.js'],
-      extends: ['@metamask/eslint-config-jest'],
-      rules: {
-        '@typescript-eslint/no-shadow': [
-          'error',
-          { allow: ['describe', 'expect', 'it'] },
-        ],
-      },
-    },
-  ],
-
-  ignorePatterns: [
-    '!.prettierrc.js',
-    '**/!.eslintrc.js',
-    '**/dist*/',
-    '**/*__GENERATED__*',
-    '**/build',
-    '**/public',
-    '**/.cache',
-  ],
+  },
+  rules: {
+    'prettier/prettier': 'error',
+    'react/react-in-jsx-scope': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+  },
 };
