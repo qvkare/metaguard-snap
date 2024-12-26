@@ -4,7 +4,8 @@ import { PhishingResult } from '../../types';
 export class PhishingDetector {
   private goPlusApiUrl: string;
   private httpClient: HttpClient;
-  private readonly metamaskApiUrl = 'https://phishing-detection.metaswap.codefi.network/v1/blacklist';
+  private readonly metamaskApiUrl =
+    'https://phishing-detection.metaswap.codefi.network/v1/blacklist';
 
   constructor(goPlusApiUrl: string, httpClient: HttpClient) {
     this.goPlusApiUrl = goPlusApiUrl;
