@@ -21,3 +21,7 @@ export const createTransactionReport = (report: SecurityReport) => {
     ...report.recommendations.map((rec) => text(rec)),
   ]);
 };
+
+export const createErrorPanel = () => {
+  return panel([heading('Error'), text('Failed to generate security report')]);
+};

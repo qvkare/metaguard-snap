@@ -2,17 +2,28 @@ import { HttpClient } from '../../utils/httpClient';
 import { PhishingResult } from '../../types';
 
 export class PhishingDetector {
-  private readonly httpClient: HttpClient;
-  private readonly metamaskApiUrl = 'https://phishing-detection.metaswap.codefi.network/v1/blacklist';
-  private readonly goPlusApiUrl = 'https://api.gopluslabs.io/api/v1/address_security/';
+  private goPlusApiUrl: string;
+  private httpClient: HttpClient;
 
-  constructor(httpClient?: HttpClient) {
-    this.httpClient = httpClient || new HttpClient('');
+  constructor(
+    goPlusApiUrl: string,
+    httpClient: HttpClient,
+  ) {
+    this.goPlusApiUrl = goPlusApiUrl;
+    this.httpClient = httpClient;
   }
 
   async isPhishingSite(address: string): Promise<boolean> {
-    const result = await this.checkAddress(address);
-    return result.isPhishing;
+    try {
+      const response = await this.httpClient.get<{
+        result: { is_phishing_site: string; is_blacklisted: string };
+      }>(`${this.goPlusApiUrl}${address}`);
+
+      return response.data.result.is_phishing_site === '1' || response.data.result.is_blacklisted === '1';
+    } catch (error) {
+      console.error('Error checking phishing site:', error);
+      return false;
+    }
   }
 
   async checkAddress(address: string): Promise<PhishingResult> {
