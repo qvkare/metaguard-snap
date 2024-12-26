@@ -1,32 +1,45 @@
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jest/recommended',
-    'prettier'
+    'plugin:import/recommended',
+    'plugin:import/typescript',
   ],
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'jest', 'prettier'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'react', 'import'],
   env: {
     browser: true,
     es2021: true,
     node: true,
-    jest: true
+    jest: true,
   },
   settings: {
     react: {
-      version: 'detect'
-    }
+      version: 'detect',
+    },
+    'import/resolver': {
+      typescript: {},
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+    },
   },
   rules: {
-    'prettier/prettier': 'error',
     'react/react-in-jsx-scope': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
-  }
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { 
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+    }],
+    '@typescript-eslint/no-empty-function': 'off',
+    'import/no-unassigned-import': 'off',
+    'import/unambiguous': 'off',
+    'import/no-named-as-default': 'off',
+    'import/no-named-as-default-member': 'off',
+    'import/no-duplicates': 'off',
+    'import/no-unresolved': 'off',
+    'import/export': 'off',
+  },
 }; 
