@@ -3,120 +3,82 @@ import axios from 'axios';
 export interface ContractInfo {
   verified: boolean;
   name?: string;
-  sourceCode?: string;
-  compiler?: string;
-  license?: string;
-  optimizationUsed?: boolean;
-  abi?: string;
   error?: string;
 }
 
-export interface Transaction {
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  input: string;
-  timestamp: string;
-}
-
 export class EtherscanService {
-  private readonly apiKey: string;
-  private readonly baseUrl: string;
+  private readonly API_URL = 'https://api.etherscan.io/api';
+  private readonly API_KEY = process.env.ETHERSCAN_API_KEY || '';
+  private cache: Map<string, ContractInfo>;
 
-  constructor(apiKey: string = process.env.ETHERSCAN_API_KEY || '', network: 'mainnet' | 'testnet' = 'mainnet') {
-    this.apiKey = apiKey;
-    this.baseUrl = network === 'mainnet' 
-      ? 'https://api.etherscan.io/api'
-      : 'https://api-goerli.etherscan.io/api';
+  constructor() {
+    this.cache = new Map();
   }
 
   async getContractInfo(address: string): Promise<ContractInfo> {
+    if (!address) {
+      return {
+        verified: false,
+        error: 'Invalid address'
+      };
+    }
+
+    // Check cache first
+    const cachedInfo = this.cache.get(address);
+    if (cachedInfo) {
+      return cachedInfo;
+    }
+
     try {
-      const response = await axios.get(this.baseUrl, {
+      const response = await axios.get(this.API_URL, {
         params: {
           module: 'contract',
           action: 'getsourcecode',
           address,
-          apikey: this.apiKey
+          apikey: this.API_KEY
         }
       });
 
-      if (response.data.status === '1' && response.data.result[0]) {
-        const contractData = response.data.result[0];
-        return {
-          verified: contractData.ABI !== 'Contract source code not verified',
-          name: contractData.ContractName || undefined,
-          sourceCode: contractData.SourceCode || undefined,
-          compiler: contractData.CompilerVersion || undefined,
-          license: contractData.LicenseType || undefined,
-          optimizationUsed: contractData.OptimizationUsed === '1',
-          abi: contractData.ABI !== 'Contract source code not verified' ? contractData.ABI : undefined
-        };
+      const result = response.data;
+      const contractInfo: ContractInfo = {
+        verified: false
+      };
+
+      if (result.status === '1' && result.result[0]) {
+        const contractData = result.result[0];
+        contractInfo.verified = contractData.ABI !== 'Contract source code not verified';
+        contractInfo.name = contractData.ContractName || undefined;
       }
 
-      return {
-        verified: false,
-        error: 'Contract not found'
-      };
+      // Cache the result
+      this.cache.set(address, contractInfo);
+
+      return contractInfo;
     } catch (error) {
       console.error('Error fetching contract info:', error);
       return {
         verified: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Failed to fetch contract info'
       };
     }
   }
 
-  async getContractABI(address: string): Promise<string> {
+  async getContractTransactions(address: string): Promise<any[]> {
     try {
-      const response = await axios.get(this.baseUrl, {
-        params: {
-          module: 'contract',
-          action: 'getabi',
-          address,
-          apikey: this.apiKey
-        }
-      });
-
-      if (response.data.status === '1') {
-        return response.data.result;
-      }
-
-      throw new Error('Contract ABI not available');
-    } catch (error) {
-      console.error('Error fetching contract ABI:', error);
-      throw error;
-    }
-  }
-
-  async getContractTransactions(
-    address: string,
-    startBlock: number = 0,
-    endBlock: number = 99999999
-  ): Promise<Transaction[]> {
-    try {
-      const response = await axios.get(this.baseUrl, {
+      const response = await axios.get(this.API_URL, {
         params: {
           module: 'account',
           action: 'txlist',
           address,
-          startblock: startBlock,
-          endblock: endBlock,
+          startblock: 0,
+          endblock: 99999999,
           sort: 'desc',
-          apikey: this.apiKey
+          apikey: this.API_KEY
         }
       });
 
-      if (response.data.status === '1') {
-        return response.data.result.map((tx: any) => ({
-          hash: tx.hash,
-          from: tx.from,
-          to: tx.to,
-          value: tx.value,
-          input: tx.input,
-          timestamp: tx.timeStamp
-        }));
+      if (response.data.status === '1' && Array.isArray(response.data.result)) {
+        return response.data.result;
       }
 
       return [];

@@ -1,6 +1,6 @@
 import { Transaction, SecurityReport, RiskLevel } from '../../types';
-import { PhishingDetector } from '../../services/phishingDetector';
-import { EtherscanService } from '../../services/etherscan';
+import { PhishingDetector } from './phishingDetector';
+import { EtherscanService } from './etherscan';
 
 export class SecurityAnalyzer {
   private phishingDetector: PhishingDetector;

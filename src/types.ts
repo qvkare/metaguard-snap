@@ -1,47 +1,35 @@
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-export type Severity = 'LOW' | 'MEDIUM' | 'HIGH';
+export type RiskLevel = 'high' | 'medium' | 'low';
 
 export interface Transaction {
-  to?: string;
-  value?: string;
+  to: string;
+  from: string;
+  value: string;
   data?: string;
-}
-
-export interface SecurityCheck {
-  name: string;
-  passed: boolean;
-  severity: Severity;
-  details?: string;
-}
-
-export interface ContractInfo {
-  verified: boolean;
-  name?: string;
-  compiler?: string;
-  version?: string;
-  balance?: string;
-  txCount?: number;
-}
-
-export interface PhishingResult {
-  isPhishing: boolean;
-  confidence: number;
-  reason?: string;
-}
-
-export interface RiskAssessment {
-  riskLevel: RiskLevel;
-  riskScore: number;
-  details: string[];
+  nonce?: string;
+  gas?: string;
+  gasPrice?: string;
+  estimateUsed?: string;
+  estimateSuggested?: string;
 }
 
 export interface SecurityReport {
-  riskLevel: RiskLevel;
-  riskScore: number;
+  risk: RiskLevel;
   warnings: string[];
   recommendations: string[];
-  securityChecks: SecurityCheck[];
-  contractInfo?: ContractInfo;
-  phishingResults?: PhishingResult;
+  securityChecks: any[];
+  contractInfo?: {
+    verified: boolean;
+    name?: string;
+    compiler?: string;
+    version?: string;
+    balance?: string;
+    txCount?: number;
+  };
+  phishingResults?: {
+    isPhishing: boolean;
+    confidence: number;
+    reason?: string;
+  };
+  isSecure: boolean;
   timestamp?: number;
 }

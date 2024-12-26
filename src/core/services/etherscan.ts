@@ -1,53 +1,80 @@
-import { HttpClient } from '../../utils/httpClient';
+import axios from 'axios';
 
-interface EtherscanResponse<T> {
-  status: string;
-  result: T;
-}
-
-interface SourceCodeResult {
-  SourceCode: string;
-  ABI: string;
-  ContractName: string;
-  CompilerVersion: string;
-  OptimizationUsed: string;
-  Runs: string;
-  ConstructorArguments: string;
-  EVMVersion: string;
-  Library: string;
-  LicenseType: string;
-  Proxy: string;
-  Implementation: string;
-  SwarmSource: string;
+interface Transaction {
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  timestamp: number;
 }
 
 export class EtherscanService {
-  private httpClient: HttpClient;
-  private apiKey: string;
+  private readonly apiKey: string;
+  private readonly apiUrl: string;
 
-  constructor(baseUrl: string, httpClient: HttpClient) {
-    this.httpClient = httpClient;
+  constructor() {
     this.apiKey = process.env.ETHERSCAN_API_KEY || '';
+    this.apiUrl = 'https://api.etherscan.io/api';
   }
 
-  async getContractSourceCode(address: string): Promise<string> {
-    const endpoint = `?module=contract&action=getsourcecode&address=${address}&apikey=${this.apiKey}`;
-    const response = await this.httpClient.get<EtherscanResponse<SourceCodeResult[]>>(endpoint);
-
-    if (response.status === '1' && response.result[0]) {
-      return response.result[0].SourceCode;
+  async getTransactionHistory(address: string): Promise<Transaction[]> {
+    if (!this.isValidAddress(address)) {
+      return [];
     }
-    return '';
+
+    try {
+      const response = await axios.get(this.apiUrl, {
+        params: {
+          module: 'account',
+          action: 'txlist',
+          address,
+          startblock: 0,
+          endblock: 99999999,
+          sort: 'desc',
+          apikey: this.apiKey
+        }
+      });
+
+      if (response.data.status === '1' && Array.isArray(response.data.result)) {
+        return response.data.result.map((tx: any) => ({
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: tx.value,
+          timestamp: parseInt(tx.timeStamp)
+        }));
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch transaction history:', error);
+      return [];
+    }
   }
 
-  async isContractVerified(address: string): Promise<boolean> {
-    const sourceCode = await this.getContractSourceCode(address);
-    return sourceCode !== '';
+  private isValidAddress(address: string): boolean {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
   }
 
-  async getContractABI(address: string): Promise<string> {
-    const endpoint = `?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`;
-    const response = await this.httpClient.get<EtherscanResponse<string>>(endpoint);
-    return response.status === '1' ? response.result : '';
+  async getContractInfo(address: string) {
+    try {
+      const response = await axios.get(`${this.apiUrl}`, {
+        params: {
+          module: 'contract',
+          action: 'getabi',
+          address,
+          apikey: this.apiKey
+        }
+      });
+
+      if (response.data.status === '1' && response.data.result) {
+        return { verified: true };
+      }
+
+      return { verified: false };
+    } catch (error) {
+      console.error('Failed to fetch contract info:', error);
+      return { verified: false };
+    }
   }
 }

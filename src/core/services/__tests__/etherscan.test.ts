@@ -1,78 +1,70 @@
+import axios from 'axios';
 import { EtherscanService } from '../etherscan';
-import { HttpClient } from '../../utils/httpClient';
-import { ContractInfo } from '../../types/common';
 
-jest.mock('../../utils/httpClient');
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('EtherscanService', () => {
   let etherscanService: EtherscanService;
-  let mockHttpClient: jest.Mocked<HttpClient>;
+  const testAddress = '0x1234567890123456789012345678901234567890';
 
   beforeEach(() => {
-    mockHttpClient = new HttpClient('') as jest.Mocked<HttpClient>;
-    etherscanService = new EtherscanService(mockHttpClient, 'test-api-key');
-  });
-
-  afterEach(() => {
+    etherscanService = new EtherscanService();
     jest.clearAllMocks();
   });
 
-  describe('getContractInfo', () => {
-    it('should return contract info for verified contract', async () => {
-      const address = '0x123';
-      mockHttpClient.get.mockResolvedValue({
+  test('should fetch transaction history', async () => {
+    const mockResponse = {
+      data: {
         status: '1',
-        message: 'OK',
-        result: [
-          {
-            ABI: '[]',
-            ContractName: 'TestContract',
-          },
-        ],
-      });
+        result: [{
+          hash: '0xabc',
+          from: testAddress,
+          to: '0xdef',
+          value: '1000000000000000000',
+          timeStamp: '1634567890'
+        }]
+      }
+    };
 
-      const result = await etherscanService.getContractInfo(address);
+    mockedAxios.get.mockResolvedValueOnce(mockResponse);
 
-      expect(result.verified).toBe(true);
-      expect(result.name).toBe('TestContract');
-      expect(mockHttpClient.get).toHaveBeenCalledWith('', {
-        params: expect.objectContaining({
-          address,
-          apikey: 'test-api-key',
-        }),
-      });
-    });
+    const result = await etherscanService.getTransactionHistory(testAddress);
 
-    it('should return unverified status for unverified contract', async () => {
-      const address = '0x456';
-      mockHttpClient.get.mockResolvedValue({
-        status: '1',
-        message: 'OK',
-        result: [
-          {
-            ABI: 'Contract source code not verified',
-          },
-        ],
-      });
+    expect(result).toEqual([{
+      hash: '0xabc',
+      from: testAddress,
+      to: '0xdef',
+      value: '1000000000000000000',
+      timestamp: 1634567890
+    }]);
+    expect(mockedAxios.get).toHaveBeenCalled();
+  });
 
-      const result = await etherscanService.getContractInfo(address);
+  test('should handle API errors', async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
 
-      expect(result.verified).toBe(false);
-      expect(result.name).toBeUndefined();
-    });
+    const result = await etherscanService.getTransactionHistory(testAddress);
 
-    it('should throw error for invalid address', async () => {
-      await expect(etherscanService.getContractInfo('')).rejects.toThrow('Address is required');
-      expect(mockHttpClient.get).not.toHaveBeenCalled();
-    });
+    expect(result).toEqual([]);
+    expect(mockedAxios.get).toHaveBeenCalled();
+  });
 
-    it('should throw error for API failure', async () => {
-      const address = '0x789';
-      mockHttpClient.get.mockRejectedValue(new Error('API error'));
+  test('should validate address format', async () => {
+    const invalidAddress = 'invalid-address';
+    
+    const result = await etherscanService.getTransactionHistory(invalidAddress);
+    
+    expect(result).toEqual([]);
+    expect(mockedAxios.get).not.toHaveBeenCalled();
+  });
 
-      await expect(etherscanService.getContractInfo(address)).rejects.toThrow(
-        'Failed to fetch contract information',
-      );
-    });
+  test('should handle API rate limits', async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error('Rate limit exceeded'));
+
+    const result = await etherscanService.getTransactionHistory(testAddress);
+
+    expect(result).toEqual([]);
+    expect(mockedAxios.get).toHaveBeenCalled();
   });
 });

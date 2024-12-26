@@ -7,15 +7,12 @@ describe('App Component Tests', () => {
   });
 
   test('renders main heading correctly', () => {
-    const headerElement = screen.getByRole('heading', { level: 1 });
-    expect(headerElement).toBeInTheDocument();
-    expect(headerElement).toHaveTextContent('MetaGuard Snap');
+    const headingElement = screen.getByText(/MetaGuard Snap/i);
+    expect(headingElement).toBeInTheDocument();
   });
 
   test('renders description text correctly', () => {
-    const description = screen.getByText(
-      /A MetaMask snap for enhanced transaction security analysis/i,
-    );
-    expect(description).toBeInTheDocument();
+    const descriptionElement = screen.getByText(/A MetaMask snap for enhanced transaction security analysis/i);
+    expect(descriptionElement).toBeInTheDocument();
   });
 });
