@@ -5,12 +5,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
 
-  overrides: [
-    {
-      files: ['*.ts', '*.tsx'],
-      extends: ['@metamask/eslint-config-browser'],
-    },
-  ],
-
-  ignorePatterns: ['.cache/', 'public/'],
+  rules: {
+    'import/no-extraneous-dependencies': 'off',
+  },
 };
