@@ -1,6 +1,7 @@
 import { PhishingDetector } from '../services/phishingDetector';
 import { EtherscanService } from '../services/etherscan';
 import { SecurityCheck, SecurityReport, RiskLevel } from '../../types';
+import { HttpClient } from '../../utils/httpClient';
 
 interface Transaction {
   to?: string;
@@ -13,8 +14,17 @@ export class SecurityAnalyzer {
   private etherscanService: EtherscanService;
 
   constructor(phishingDetector?: PhishingDetector, etherscanService?: EtherscanService) {
-    this.phishingDetector = phishingDetector || new PhishingDetector();
-    this.etherscanService = etherscanService || new EtherscanService();
+    const goPlusApiUrl = 'https://api.gopluslabs.io/api/v1/phishing_site/';
+    const etherscanApiUrl = 'https://api.etherscan.io/api';
+    const etherscanApiKey = process.env.ETHERSCAN_API_KEY || '';
+
+    const goPlusHttpClient = new HttpClient(goPlusApiUrl);
+    const etherscanHttpClient = new HttpClient(etherscanApiUrl, etherscanApiKey);
+
+    this.phishingDetector =
+      phishingDetector || new PhishingDetector(goPlusApiUrl, goPlusHttpClient);
+    this.etherscanService =
+      etherscanService || new EtherscanService(etherscanApiUrl, etherscanHttpClient);
   }
 
   async analyzeTransaction(transaction: Transaction): Promise<SecurityReport> {

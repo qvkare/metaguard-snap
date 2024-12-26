@@ -24,11 +24,10 @@ interface SourceCodeResult {
 export class EtherscanService {
   private httpClient: HttpClient;
   private apiKey: string;
-  private readonly baseUrl = 'https://api.etherscan.io/api';
 
-  constructor(httpClient?: HttpClient, apiKey?: string) {
-    this.httpClient = httpClient || new HttpClient(this.baseUrl);
-    this.apiKey = apiKey || process.env.ETHERSCAN_API_KEY || '';
+  constructor(baseUrl: string, httpClient: HttpClient) {
+    this.httpClient = httpClient;
+    this.apiKey = process.env.ETHERSCAN_API_KEY || '';
   }
 
   async getContractSourceCode(address: string): Promise<string> {

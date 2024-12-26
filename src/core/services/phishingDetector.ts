@@ -17,9 +17,7 @@ export class PhishingDetector {
       const response = await this.httpClient.get<{
         result: { is_phishing_site: string; is_blacklisted: string };
       }>(`${this.goPlusApiUrl}${address}`);
-      return (
-        response.data.result.is_phishing_site === '1' || response.data.result.is_blacklisted === '1'
-      );
+      return response.result.is_phishing_site === '1' || response.result.is_blacklisted === '1';
     } catch (error) {
       console.error('Error checking phishing site:', error);
       return false;
