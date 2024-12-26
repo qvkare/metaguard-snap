@@ -38,7 +38,9 @@ export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
                 { type: 'heading', value: 'Security Checks:' },
                 ...report.securityChecks.map((check) => ({
                   type: 'text',
-                  value: `${check.name}: ${check.passed ? 'Passed' : 'Failed'} (${check.severity})${check.details ? `\n${check.details}` : ''}`,
+                  value: `${check.name}: ${check.passed ? 'Passed' : 'Failed'} (${check.severity})${
+                    check.details ? `\n${check.details}` : ''
+                  }`,
                 })),
               ]
             : []),

@@ -48,7 +48,9 @@ describe('SecurityAnalyzer', () => {
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
     expect(result.warnings).toContain('Contract creation transaction detected');
-    expect(result.recommendations).toContain('Review the contract code carefully before deployment');
+    expect(result.recommendations).toContain(
+      'Review the contract code carefully before deployment',
+    );
   });
 
   it('should detect high risk transactions', async () => {
@@ -63,7 +65,9 @@ describe('SecurityAnalyzer', () => {
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
     expect(result.riskLevel).toBe('HIGH');
-    expect(result.securityChecks.some((check) => !check.passed && check.severity === 'HIGH')).toBe(true);
+    expect(result.securityChecks.some((check) => !check.passed && check.severity === 'HIGH')).toBe(
+      true,
+    );
   });
 
   it('should handle value transfers', async () => {
@@ -75,6 +79,8 @@ describe('SecurityAnalyzer', () => {
     const result = await securityAnalyzer.analyzeTransaction(transaction);
 
     expect(result.warnings).toContain('Transaction involves value transfer');
-    expect(result.recommendations).toContain('Verify the recipient address and amount before confirming');
+    expect(result.recommendations).toContain(
+      'Verify the recipient address and amount before confirming',
+    );
   });
 });

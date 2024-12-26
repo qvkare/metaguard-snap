@@ -63,7 +63,9 @@ export class SecurityAnalyzer {
 
   private calculateRisk(checks: SecurityCheck[]): { riskLevel: RiskLevel; riskScore: number } {
     const highRiskFailures = checks.filter((check) => !check.passed && check.severity === 'HIGH');
-    const mediumRiskFailures = checks.filter((check) => !check.passed && check.severity === 'MEDIUM');
+    const mediumRiskFailures = checks.filter(
+      (check) => !check.passed && check.severity === 'MEDIUM',
+    );
 
     const riskScore = (highRiskFailures.length * 3 + mediumRiskFailures.length) / checks.length;
 
