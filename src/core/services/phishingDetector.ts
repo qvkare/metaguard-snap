@@ -5,10 +5,7 @@ export class PhishingDetector {
   private goPlusApiUrl: string;
   private httpClient: HttpClient;
 
-  constructor(
-    goPlusApiUrl: string,
-    httpClient: HttpClient,
-  ) {
+  constructor(goPlusApiUrl: string, httpClient: HttpClient) {
     this.goPlusApiUrl = goPlusApiUrl;
     this.httpClient = httpClient;
   }
@@ -19,7 +16,10 @@ export class PhishingDetector {
         result: { is_phishing_site: string; is_blacklisted: string };
       }>(`${this.goPlusApiUrl}${address}`);
 
-      return response.data.result.is_phishing_site === '1' || response.data.result.is_blacklisted === '1';
+      return (
+        response.data.result.is_phishing_site === '1' ||
+        response.data.result.is_blacklisted === '1'
+      );
     } catch (error) {
       console.error('Error checking phishing site:', error);
       return false;
@@ -82,11 +82,11 @@ export class PhishingDetector {
 
   private async checkGoPlusSecurity(address: string): Promise<PhishingResult> {
     try {
-      const response = await this.httpClient.get<{ result: { is_phishing_site: string; is_blacklisted: string } }>(
-        `${this.goPlusApiUrl}${address}`,
-      );
-      const securityInfo = response.result || {};
+      const response = await this.httpClient.get<{
+        result: { is_phishing_site: string; is_blacklisted: string };
+      }>(`${this.goPlusApiUrl}${address}`);
 
+      const securityInfo = response.result || {};
       const isPhishing =
         securityInfo.is_phishing_site === '1' || securityInfo.is_blacklisted === '1';
 

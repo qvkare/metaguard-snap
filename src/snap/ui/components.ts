@@ -3,10 +3,7 @@ import { SecurityReport } from '../../types';
 
 export const createTransactionReport = (report: SecurityReport) => {
   if (!report) {
-    return panel([
-      heading('Error'),
-      text('Failed to generate security report'),
-    ]);
+    return panel([heading('Error'), text('Failed to generate security report')]);
   }
 
   return panel([
