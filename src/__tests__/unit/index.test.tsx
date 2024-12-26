@@ -1,9 +1,9 @@
-import { onTransaction } from '.';
-import { SecurityAnalyzer } from './security/analyzers/securityAnalyzer';
+import { onTransaction } from '../../index';
+import { SecurityAnalyzer } from '../../core/analyzers/SecurityAnalyzer';
 import { type Transaction } from '@metamask/snaps-sdk';
 import { Panel, NodeType } from '@metamask/snaps-sdk';
 
-jest.mock('./security/analyzers/securityAnalyzer');
+jest.mock('../../core/analyzers/SecurityAnalyzer');
 
 describe('onTransaction', () => {
   let mockSecurityAnalyzer: jest.Mocked<SecurityAnalyzer>;

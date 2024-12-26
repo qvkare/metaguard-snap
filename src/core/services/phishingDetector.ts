@@ -1,4 +1,4 @@
-import { HttpClient } from '../utils/httpClient';
+import { HttpClient } from '../../utils/httpClient';
 import { PhishingResult } from '../types/common';
 
 export class PhishingDetector {

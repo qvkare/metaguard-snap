@@ -1,15 +1,15 @@
-export type RiskLevel = 'low' | 'medium' | 'high';
-
 export interface Transaction {
   to?: string;
   value?: string;
   data?: string;
 }
 
+export type RiskLevel = 'low' | 'medium' | 'high';
+
 export interface SecurityCheck {
   name: string;
   passed: boolean;
-  details?: string;
+  details: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
@@ -24,12 +24,6 @@ export interface PhishingResult {
   reason?: string;
 }
 
-export interface RiskAssessment {
-  riskLevel: RiskLevel;
-  riskScore: number;
-  details: string[];
-}
-
 export interface SecurityReport {
   risk: RiskLevel;
   warnings: string[];
@@ -37,6 +31,10 @@ export interface SecurityReport {
   securityChecks: SecurityCheck[];
   contractInfo: ContractInfo;
   phishingResults: PhishingResult;
-  riskAssessment: RiskAssessment;
+  riskAssessment: {
+    riskLevel: RiskLevel;
+    riskScore: number;
+    details: string[];
+  };
   timestamp: number;
 } 

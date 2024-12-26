@@ -1,10 +1,10 @@
-import { SecurityAnalyzer } from '../securityAnalyzer';
-import { PhishingDetector } from '../../../services/phishingDetector';
-import { EtherscanService } from '../../../services/etherscan';
-import { Transaction } from '../../../types/common';
+import { SecurityAnalyzer } from '../../core/analyzers/SecurityAnalyzer';
+import { PhishingDetector } from '../../core/services/phishingDetector';
+import { EtherscanService } from '../../core/services/etherscan';
+import { Transaction } from '../../types/common';
 
-jest.mock('../../../services/phishingDetector');
-jest.mock('../../../services/etherscan');
+jest.mock('../../core/services/phishingDetector');
+jest.mock('../../core/services/etherscan');
 
 describe('SecurityAnalyzer', () => {
   let securityAnalyzer: SecurityAnalyzer;
