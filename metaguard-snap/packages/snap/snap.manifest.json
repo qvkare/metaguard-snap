@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "description": "ML-based Transaction Security Analysis for MetaMask",
+  "proposedName": "MetaGuard",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/metaguard-snap.git"
+  },
+  "source": {
+    "shasum": "Wm0/Np58J62N0UupWiChrg61c+s2nwbts5Zi5qPZORI=",
+    "location": {
+      "npm": {
+        "filePath": "dist/bundle.js",
+        "iconPath": "images/icon.svg",
+        "packageName": "metaguard-snap",
+        "registry": "https://registry.npmjs.org/"
+      }
+    }
+  },
+  "initialPermissions": {
+    "snap_dialog": {},
+    "endowment:transaction-insight": {},
+    "endowment:network-access": {}
+  },
+  "platformVersion": "1.4.0",
+  "manifestVersion": "0.1"
+}
